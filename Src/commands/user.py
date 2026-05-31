@@ -1,5 +1,6 @@
 import discord
 import blacklist
+from utility import is_jailed
 
 def setup(tree, client):
     @tree.command(
@@ -10,6 +11,10 @@ def setup(tree, client):
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted")
             return
+        elif (is_jailed(interaction)):
+            await interaction.response.send_message("You are in jail")
+            return
+        
         user = interaction.user
 
         color = (
@@ -70,6 +75,10 @@ def setup(tree, client):
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted")
             return
+        elif (is_jailed(interaction)):
+            await interaction.response.send_message("You are in jail")
+            return
+        
         embed = discord.Embed(
             title=f"{user.display_name}'s Profile",
             color=user.top_role.color
