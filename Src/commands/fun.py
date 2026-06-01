@@ -6,6 +6,7 @@ from datetime import timedelta
 import pyjokes
 import blacklist
 from utility import is_jailed
+import random
 
 
 def setup(tree, client):
@@ -39,7 +40,8 @@ def setup(tree, client):
             )
         except Exception as e:
             await interaction.response.send_message(
-                "Failed to apply timeout. Please try again!  **If not working for a long time, contact support team!**", ephemeral=True
+                "Failed to apply timeout. Please try again!  **If not working for a long time, contact support team!**",
+                ephemeral=True,
             )
 
     @tree.command(name="joke", description="Get a random joke")
@@ -58,5 +60,50 @@ def setup(tree, client):
             )
         except Exception as e:
             await interaction.response.send_message(
-                "Failed to fetch a joke. Try again later! **If not working for a long time, contact support team!**", ephemeral=True
+                f"Failed to fetch a joke. Try again later! **If not working for a long time, contact support team!** \n {e}",
+                ephemeral=True,
+            )
+
+    @tree.command(name="rps", description="Play RPS")
+    async def play_rps(interaction: Interaction, choice: str) -> None:
+        choices: list[str] = ["rock", "paper", "scissors"]
+
+        if blacklist.is_blacklisted(interaction.user.id):
+            await interaction.response.send_message("You are blacklisted!")
+            return
+        elif is_jailed(interaction):
+            await interaction.response.send_message("You are in jail!")
+            return
+        
+        if choice in ["67", "tung tung shaur", "97"]:
+            await interaction.response.send_message("You are not cool.")
+            return
+        elif choice not in choices:
+            await interaction.response.send_message("Invalid choice. Available options are :- **rock**, **paper**, **scissors**!")
+            return
+
+        try:
+            computer_choice = random.choice(choices)
+
+            if choice == computer_choice:
+                await interaction.response.send_message(
+                    f"You choose **{choice}**! \n Computer choose: **{computer_choice}**! \n _**It's a draw!**_"
+                )
+                return
+            elif (
+                (choice == "paper" and computer_choice == "rock")
+                or (choice == "scissors" and computer_choice == "paper")
+                or (choice == "rock" and computer_choice == "scissors")
+            ):
+                await interaction.response.send_message(
+                    f"You choose **{choice}** \n Computer choose **{computer_choice}**! \n You won!"
+                )
+            else:
+                await interaction.response.send_message(
+                    f"You choose **{choice}** \n Computer choose **{computer_choice}**! \n Computer won!"
+                )
+
+        except Exception as e:
+            await interaction.response.send_message(
+                f"Unexpected error, **contact support** :- \n {e}", ephemeral=True
             )
