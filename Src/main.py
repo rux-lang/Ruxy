@@ -1,30 +1,25 @@
 import discord
 from discord import app_commands
-from discord.ext import commands
 from config import TOKEN
 
-from commands import utility
-from commands import user
-from commands import github
-from commands import owner
-from commands import moderation
-from commands import fun
-from commands import poll
+from commands import fun, github, moderation, owner, user, utility
 
 
-class Client(commands.Bot):
+class Client(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.synced = False
 
     async def setup_hook(self):
-        print(self.guilds)
         if self.synced:
             print("setup_hook failed - already synced")
             return
         for guild in self.guilds:
             try:
-                synced = await self.tree.sync(guild=guild)
+                tree.copy_global_to(guild=guild)
+                
+                synced = await tree.sync(guild=guild)
+                
                 print(
                     f"Instantly synced {len(synced)} command(s) "
                     f"to guild: {guild.name}"
@@ -56,6 +51,5 @@ github.setup(tree, client)
 owner.setup(tree, client)
 moderation.setup(tree, client)
 fun.setup(tree, client)
-poll.setup(tree, client)
 
-client.run(TOKEN)
+client.run(TOKEN) # type: ignore
