@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 import os
 import sys
-from config import MOD_ROLE_ID, ADMIN_ROLE_ID
+from utility import is_allowed
 
 from config import OWNERS
 
@@ -13,7 +13,7 @@ def setup(tree, client):
         description="Shuts down Ruxy"
     )
     async def shutdown(interaction: discord.Interaction):
-        if interaction.user.id not in OWNERS:
+        if not is_allowed(interaction, [], OWNERS):
             await interaction.response.send_message(
                 "You cannot use this command.",
                 ephemeral=True
@@ -32,7 +32,7 @@ def setup(tree, client):
         description="Restarts Ruxy"
     )
     async def restart(interaction: discord.Interaction):
-        if interaction.user.id not in OWNERS:
+        if not is_allowed(interaction, [], OWNERS):
             await interaction.response.send_message(
                 "You cannot use this command.",
                 ephemeral=True

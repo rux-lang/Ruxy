@@ -1,8 +1,8 @@
 import discord
 import blacklist
-from config import MOD_ROLE_ID, ADMIN_ROLE_ID, MUTE_ROLE_ID
+from config import MOD_ROLE_ID, ADMIN_ROLE_ID, LOG_CHANNEL_ID
 from datetime import timedelta
-from discord.ext import commands
+from utility import is_allowed
 
 # only mods and up can use it
 # blacklist = can't use the bot
@@ -12,7 +12,7 @@ def setup(tree, client):
         description="blacklists someone",
     )
     async def blacklist_command(interaction: discord.Interaction, user: discord.Member):
-        if not any(role.id in (MOD_ROLE_ID, ADMIN_ROLE_ID) for role in interaction.user.roles):
+        if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
             await interaction.response.send_message(
                 "No permission.",
                 ephemeral=True
@@ -35,8 +35,7 @@ def setup(tree, client):
         interaction: discord.Interaction,
         user: discord.Member
     ):
-        if not any(role.id in (MOD_ROLE_ID, ADMIN_ROLE_ID)
-                for role in interaction.user.roles):
+        if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
             await interaction.response.send_message(
                 "No permission.",
                 ephemeral=True
@@ -68,7 +67,7 @@ def setup(tree, client):
 
         if not (
             author.guild_permissions.administrator
-            or any(role.id in {MOD_ROLE_ID, ADMIN_ROLE_ID} for role in author.roles)
+            or is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID])
         ):
             await interaction.response.send_message(
                 "You do not have permission to use this command.",
@@ -114,7 +113,7 @@ def setup(tree, client):
 
         if not (
             author.guild_permissions.administrator
-            or any(role.id in {MOD_ROLE_ID, ADMIN_ROLE_ID} for role in author.roles)
+            or is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID])
         ):
             await interaction.response.send_message(
                 "You do not have permission to use this command.",
@@ -143,7 +142,7 @@ def setup(tree, client):
         description="say something",
     )
     async def say(interaction: discord.Interaction, message: str):
-        if not any(role.id in (MOD_ROLE_ID, ADMIN_ROLE_ID) for role in interaction.user.roles) and False:
+        if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
             await interaction.response.send_message(
                 "No permission.",
                 ephemeral=True
@@ -154,5 +153,8 @@ def setup(tree, client):
             message
         )
 
+        await interaction.guild.get_channel(LOG_CHANNEL_ID).send(
+            f"<@{interaction.user.id}> ran `/say` with text `{message}` in <#{interaction.channel_id}>"
+        )
 
         await interaction.response.send_message("Success!", ephemeral=True)
