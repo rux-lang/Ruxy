@@ -13,7 +13,7 @@ def setup(tree, client):
         description="Shuts down Ruxy"
     )
     async def shutdown(interaction: discord.Interaction):
-        if is_allowed(interaction, [], OWNERS):
+        if not is_allowed(interaction, [], OWNERS):
             await interaction.response.send_message(
                 "You cannot use this command.",
                 ephemeral=True
@@ -32,7 +32,7 @@ def setup(tree, client):
         description="Restarts Ruxy"
     )
     async def restart(interaction: discord.Interaction):
-        if is_allowed(interaction, [], OWNERS):
+        if not is_allowed(interaction, [], OWNERS):
             await interaction.response.send_message(
                 "You cannot use this command.",
                 ephemeral=True
