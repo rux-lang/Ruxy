@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2025-present Ahum Maitra theahummaitra@gmail.com
 # SPDX-License-Identifier: 	MIT
 
-from discord import Interaction
+from discord import Interaction, app_commands
 from datetime import timedelta
 import pyjokes
 import blacklist
@@ -65,25 +65,21 @@ def setup(tree, client):
             )
 
     @tree.command(name="rps", description="Play RPS")
+    @app_commands.choices(choice=[
+            app_commands.Choice(name="Rock", value="rock"),
+            app_commands.Choice(name="Paper", value="paper"),
+            app_commands.Choice(name="Scissors", value="scissors"),
+        ])
     async def play_rps(interaction: Interaction, choice: str) -> None:
-        choices: list[str] = ["rock", "paper", "scissors"]
-
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
             return
         elif is_jailed(interaction):
             await interaction.response.send_message("You are in jail!")
             return
-        
-        if choice in ["67", "tung tung shaur", "97"]:
-            await interaction.response.send_message("You are not cool.")
-            return
-        elif choice not in choices:
-            await interaction.response.send_message("Invalid choice. Available options are :- **rock**, **paper**, **scissors**!")
-            return
 
         try:
-            computer_choice = random.choice(choices)
+            computer_choice = random.choice(["rock", "paper", "scissors"])
 
             if choice == computer_choice:
                 await interaction.response.send_message(
