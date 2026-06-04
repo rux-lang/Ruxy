@@ -1,8 +1,8 @@
 import discord
 import requests
 from discord import app_commands
-import blacklist
-from utility import is_jailed
+from blacklist import is_blacklisted, blacklist_user
+from utility import filter_inputs
 
 # if the value starts with "$", then the following should be interpreted as a key for this
 # if a key does not exist, https://github.com/rux-lang/<key> gets checked.
@@ -48,8 +48,12 @@ def setup(tree, client):
         repository: str,
         branch: str = "main"
     ):
-        if repository == "67":
+        if is_blacklisted(interaction.user.id):
+            await interaction.response.send_message("You are blacklisted!")
+            return
+        elif filter_inputs([repository, branch]):
             await interaction.response.send_message("You don't deserve the bot's functionality")
+            blacklist_user(interaction.user.id)
             return
 
 
