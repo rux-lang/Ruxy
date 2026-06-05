@@ -7,4 +7,5 @@ requires-python = ">=3.14"
 dependencies = [
     "discord-py>=2.7.1",
     "pyjokes>=0.8.3",
+    "requests>=2.34.2",
 ]
