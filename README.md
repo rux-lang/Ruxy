@@ -54,6 +54,7 @@ Ruxy's official Discord bot.
 | --------------- | ----------------------------------------- |
 | `/self-timeout` | Timeout the member itself specified time  |
 | `/joke`         | Sends a random joke                       |
+| `/rps`          | Play **rock, paper, scissors** with computer | 
 
 
 ## License
