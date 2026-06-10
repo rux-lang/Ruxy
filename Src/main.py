@@ -1,4 +1,5 @@
 import discord
+import typing
 from discord import app_commands
 from config import TOKEN
 
@@ -6,11 +7,11 @@ from commands import bot_utility, fun, github, moderation, owner, user
 
 
 class Client(discord.Client):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
         super().__init__(*args, **kwargs)
         self.synced = False
 
-    async def setup_hook(self):
+    async def setup_hook(self) -> None:
         if self.synced:
             print("setup_hook failed - already synced")
             return
@@ -28,7 +29,7 @@ class Client(discord.Client):
 
             self.synced = True
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         print(f"Logged in as {self.user}")
         await self.setup_hook()
 
@@ -46,4 +47,7 @@ owner.setup(tree, client)
 moderation.setup(tree, client)
 fun.setup(tree, client)
 
-client.run(TOKEN)  # type: ignore
+if TOKEN is None:
+    raise ValueError("DISCORD_TOKEN is not set in environment variables.")
+
+client.run(TOKEN)

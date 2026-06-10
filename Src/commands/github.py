@@ -23,7 +23,9 @@ REPOS = {
 }
 
 
-async def repo_autocomplete(interaction: discord.Interaction, current: str):
+async def repo_autocomplete(
+    interaction: discord.Interaction, current: str
+) -> list[app_commands.Choice[str]]:
     return [
         app_commands.Choice(name="Rux (Compiler)", value="rux"),
         app_commands.Choice(name="Ruxy Bot", value="bot"),
@@ -36,12 +38,12 @@ async def repo_autocomplete(interaction: discord.Interaction, current: str):
     ]
 
 
-def setup(tree, client):
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
     @tree.command(name="repo", description="Get a link to a Rux repository")
     @app_commands.autocomplete(repository=repo_autocomplete)
     async def repo(
         interaction: discord.Interaction, repository: str, branch: str = "main"
-    ):
+    ) -> None:
         if is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
             return
@@ -65,9 +67,7 @@ def setup(tree, client):
             deferred = True
 
             # check if a repo exists
-            r = requests.get(
-                r_url, headers={"User-Agent": "repo-check"}, timeout=10
-            )
+            r = requests.get(r_url, headers={"User-Agent": "repo-check"}, timeout=10)
             if r.status_code == 200:
                 url = f"https://github.com/rux-lang/{repository}"
             else:
@@ -127,7 +127,7 @@ def setup(tree, client):
     async def package(
         interaction: discord.Interaction,
         package: str,
-    ):
+    ) -> None:
         if package == "67":
             await interaction.response.send_message(
                 "You don't deserve the bot's functionality"

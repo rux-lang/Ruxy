@@ -1,12 +1,13 @@
 import discord
+from discord import app_commands
 import blacklist
 from config import MOD_ROLE_ID, ADMIN_ROLE_ID
 from utility import is_jailed
 
 
-def setup(tree, client):
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
     @tree.command(name="ping", description="Replies with pong")
-    async def ping(interaction: discord.Interaction):
+    async def ping(interaction: discord.Interaction) -> None:
         if not isinstance(interaction.user, discord.Member):
             await interaction.response.send_message(
                 "This command can only be used in a server.", ephemeral=True
@@ -30,7 +31,7 @@ def setup(tree, client):
         user: discord.Member,
         message: str,
         reason: str = "No reason provided",
-    ):
+    ) -> None:
         if not isinstance(interaction.user, discord.Member):
             await interaction.response.send_message(
                 "This command can only be used in a server.", ephemeral=True
@@ -39,8 +40,7 @@ def setup(tree, client):
 
         # Permission check: only mods and admins
         if not any(
-            role.id in (MOD_ROLE_ID, ADMIN_ROLE_ID)
-            for role in interaction.user.roles
+            role.id in (MOD_ROLE_ID, ADMIN_ROLE_ID) for role in interaction.user.roles
         ):
             await interaction.response.send_message(
                 "You don't have permission to use this command.", ephemeral=True
@@ -77,6 +77,5 @@ def setup(tree, client):
             )
         except Exception as error:
             await interaction.response.send_message(
-                f"Unexpected error :- {error} \n\n"
-                "**Contact support team!**"
+                f"Unexpected error :- {error} \n\n**Contact support team!**"
             )

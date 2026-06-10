@@ -4,18 +4,18 @@
 import discord
 from discord import Interaction, app_commands
 from datetime import timedelta
-import pyjokes  # type: ignore
+import pyjokes
 import blacklist
 from utility import is_jailed
 import secrets
 
 
-def setup(tree, client):
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
     @tree.command(
         name="self-timeout",
         description="Timeout yourself for a specified duration (minutes)",
     )
-    async def self_timeout(interaction: Interaction, duration: int):
+    async def self_timeout(interaction: Interaction, duration: int) -> None:
         """Allows users to timeout themselves"""
 
         if duration <= 0:
@@ -53,7 +53,7 @@ def setup(tree, client):
             )
 
     @tree.command(name="joke", description="Get a random joke")
-    async def send_joke(interaction: Interaction):
+    async def send_joke(interaction: Interaction) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
             return

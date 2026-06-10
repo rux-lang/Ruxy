@@ -13,10 +13,10 @@ def is_allowed(
     allowed_roles: list[int] = [],
     allowed_users: list[int] = [],
 ) -> bool:
-    if ctx.guild is None:
+    if ctx.guild is None or not isinstance(ctx.user, Member):
         return False
 
-    member: Member = ctx.user  # type: ignore
+    member: Member = ctx.user
     roles: list[int] = [role.id for role in member.roles]
 
     if any(id in allowed_roles for id in roles):
