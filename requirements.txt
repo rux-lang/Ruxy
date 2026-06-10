@@ -1,0 +1,8 @@
+bandit>=1.9.4
+discord-py>=2.7.1
+flake8>=7.3.0
+mypy>=2.1.0
+pyjokes>=0.8.3
+pyright>=1.1.410
+python-dotenv>=1.2.2
+types-requests>=2.33.0
