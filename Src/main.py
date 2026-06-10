@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from config import TOKEN
 
-from commands import fun, github, moderation, owner, user, utility
+from commands import bot_utility, fun, github, moderation, owner, user
 
 
 class Client(discord.Client):
@@ -17,20 +17,16 @@ class Client(discord.Client):
         for guild in self.guilds:
             try:
                 tree.copy_global_to(guild=guild)
-                
+
                 synced = await tree.sync(guild=guild)
-                
+
                 print(
-                    f"Instantly synced {len(synced)} command(s) "
-                    f"to guild: {guild.name}"
+                    f"Instantly synced {len(synced)} command(s) to guild: {guild.name}"
                 )
             except Exception as e:
-                print(
-                    f"Failed to sync to guild "
-                    f"{guild.name}: {e}"
-                )
-    
-            self.synced = True 
+                print(f"Failed to sync to guild {guild.name}: {e}")
+
+            self.synced = True
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")
@@ -39,17 +35,15 @@ class Client(discord.Client):
 
 intents = discord.Intents.default()
 
-client = Client(
-    intents=intents
-)
+client = Client(intents=intents)
 
 tree = app_commands.CommandTree(client)
 
-utility.setup(tree, client)
+bot_utility.setup(tree, client)
 user.setup(tree, client)
 github.setup(tree, client)
 owner.setup(tree, client)
 moderation.setup(tree, client)
 fun.setup(tree, client)
 
-client.run(TOKEN) # type: ignore
+client.run(TOKEN)  # type: ignore

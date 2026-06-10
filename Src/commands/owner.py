@@ -1,5 +1,4 @@
 import discord
-from discord import app_commands
 import os
 import sys
 from utility import is_allowed
@@ -8,43 +7,28 @@ from config import OWNERS
 
 
 def setup(tree, client):
-    @tree.command(
-        name="shutdown",
-        description="Shuts down Ruxy"
-    )
+    @tree.command(name="shutdown", description="Shuts down the bot")
     async def shutdown(interaction: discord.Interaction):
         if not is_allowed(interaction, [], OWNERS):
             await interaction.response.send_message(
-                "You cannot use this command.",
-                ephemeral=True
+                "You cannot use this command.", ephemeral=True
             )
             return
 
-        await interaction.response.send_message(
-            "Shutting down...",
-            ephemeral=True
-        )
+        await interaction.response.send_message("Shutting down...", ephemeral=True)
 
         await client.close()
 
-    @tree.command(
-        name="restart",
-        description="Restarts Ruxy"
-    )
+    @tree.command(name="restart", description="Restarts Ruxy")
     async def restart(interaction: discord.Interaction):
         if not is_allowed(interaction, [], OWNERS):
             await interaction.response.send_message(
-                "You cannot use this command.",
-                ephemeral=True
+                "You cannot use this command.", ephemeral=True
             )
             return
 
         await interaction.response.send_message(
-            "Restarting...",
-            ephemeral=True
+            "Restarting...", ephemeral=True
         )
 
-        os.execv(
-            sys.executable,
-            [sys.executable] + sys.argv
-        )
+        os.execv(sys.executable, [sys.executable] + sys.argv)  # nosec
