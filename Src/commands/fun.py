@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: 	MIT
 
 import discord
-from discord import Interaction, app_commands
+from discord import Interaction, Member, app_commands
 from datetime import timedelta
 import pyjokes
 import blacklist
 from utility import is_jailed
 
 import requests
-import random
 import secrets
 
 
@@ -76,6 +75,7 @@ def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
                 f"\n {e}",
                 ephemeral=True,
             )
+
     @tree.command(name="roast", description="Roast somebody")
     @app_commands.describe(target="The member you want to roast")
     async def do_roast(interaction: Interaction, member: Member) -> None:
@@ -85,12 +85,18 @@ def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
         elif is_jailed(interaction):
             await interaction.response.send_message("You are in jail!")
             return
-        
+
         try:
-            insult = requests.get('https://evilinsult.com/generate_insult.php?lang=en&type=text', timeout=5) #get the insult in plain text
+            insult = requests.get(
+                "https://evilinsult.com/generate_insult.php?lang=en&type=text",
+                timeout=5,
+            )  # get the insult in plain text
             await interaction.response.send_message(insult.text)
         except Exception as error:
-            await interaction.response.send_message(f"**Unexpected error, contact support after trying for a while :- ** \n {error}")
+            await interaction.response.send_message(
+                "**Unexpected error, contact support after trying for a while :- ** "
+                f"\n {error}"
+            )
 
     @tree.command(name="rps", description="Play RPS")
     @app_commands.choices(
