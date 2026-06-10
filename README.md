@@ -1,6 +1,6 @@
 # Ruxy
 
-Ruxy's official Discord bot.
+Rux's official Discord bot.
 
 ## Features
 
@@ -52,7 +52,7 @@ Ruxy's official Discord bot.
 
 | Command         | Description                               |
 | --------------- | ----------------------------------------- |
-| `/self-timeout` | Timeout the member itself specified time  |
+| `/self-timeout` | Timeout the member themself specified time  |
 | `/joke`         | Sends a random joke                       |
 | `/rps`          | Play **rock, paper, scissors** with computer | 
 
