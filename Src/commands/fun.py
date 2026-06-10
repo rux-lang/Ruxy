@@ -1,20 +1,22 @@
 # SPDX-FileCopyrightText: 2025-present Ahum Maitra theahummaitra@gmail.com
 # SPDX-License-Identifier: 	MIT
 
-from discord import Interaction, app_commands, Member
+import discord
+from discord import Interaction, app_commands
 from datetime import timedelta
-import pyjokes
+import pyjokes  # type: ignore
 import blacklist
 from utility import is_jailed
 
 import requests
 import random
+import secrets
 
 
 def setup(tree, client):
     @tree.command(
         name="self-timeout",
-        description="Timeout yourself for a specified duration (in minutes)",
+        description="Timeout yourself for a specified duration (minutes)",
     )
     async def self_timeout(interaction: Interaction, duration: int):
         """Allows users to timeout themselves"""
@@ -32,6 +34,12 @@ def setup(tree, client):
             )
             return
 
+        if not isinstance(interaction.user, discord.Member):
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+
         try:
             await interaction.user.timeout(
                 timedelta(minutes=duration),
@@ -40,9 +48,10 @@ def setup(tree, client):
             await interaction.response.send_message(
                 f"Timed out for {duration} minutes."
             )
-        except Exception as e:
+        except Exception:
             await interaction.response.send_message(
-                "Failed to apply timeout. Please try again!  **If not working for a long time, contact support team!**",
+                "Failed to apply timeout. Please try again! "
+                "**If not working for a long time, contact support team!**",
                 ephemeral=True,
             )
 
@@ -62,7 +71,9 @@ def setup(tree, client):
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to fetch a joke. Try again later! **If not working for a long time, contact support team!** \n {e}",
+                "Failed to fetch a joke. Try again later! "
+                "**If not working for a long time, contact support team!** "
+                f"\n {e}",
                 ephemeral=True,
             )
     @tree.command(name="roast", description="Roast somebody")
@@ -82,11 +93,13 @@ def setup(tree, client):
             await interaction.response.send_message(f"**Unexpected error, contact support after trying for a while :- ** \n {error}")
 
     @tree.command(name="rps", description="Play RPS")
-    @app_commands.choices(choice=[
+    @app_commands.choices(
+        choice=[
             app_commands.Choice(name="Rock", value="rock"),
             app_commands.Choice(name="Paper", value="paper"),
             app_commands.Choice(name="Scissors", value="scissors"),
-        ])
+        ]
+    )
     async def play_rps(interaction: Interaction, choice: str) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
@@ -96,11 +109,13 @@ def setup(tree, client):
             return
 
         try:
-            computer_choice = random.choice(["rock", "paper", "scissors"])
+            computer_choice = secrets.choice(["rock", "paper", "scissors"])
 
             if choice == computer_choice:
                 await interaction.response.send_message(
-                    f"You choose **{choice}**! \n Computer choose: **{computer_choice}**! \n _**It's a draw!**_"
+                    f"You choose **{choice}**! \n "
+                    f"Computer choose: **{computer_choice}**! \n "
+                    "_**It's a draw!**_"
                 )
                 return
             elif (
@@ -109,11 +124,15 @@ def setup(tree, client):
                 or (choice == "rock" and computer_choice == "scissors")
             ):
                 await interaction.response.send_message(
-                    f"You choose **{choice}** \n Computer choose **{computer_choice}**! \n You won!"
+                    f"You choose **{choice}** \n "
+                    f"Computer choose **{computer_choice}**! \n "
+                    "You won!"
                 )
             else:
                 await interaction.response.send_message(
-                    f"You choose **{choice}** \n Computer choose **{computer_choice}**! \n Computer won!"
+                    f"You choose **{choice}** \n "
+                    f"Computer choose **{computer_choice}**! \n "
+                    "Computer won!"
                 )
 
         except Exception as e:

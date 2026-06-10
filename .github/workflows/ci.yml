@@ -1,0 +1,297 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prebuild:
+    name: Prebuild Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Prebuild Validation (compileall)
+        shell: bash
+        run: |
+          echo "Running Python bytecode compilation..."
+
+          python -m compileall . -q
+
+  lint-ruff:
+    name: Lint and Format with Ruff
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install Ruff
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run Ruff Lint
+        shell: bash
+        run: |
+          echo "Running Ruff static analysis..."
+
+          ruff check .
+
+      - name: Run Ruff Format Check
+        shell: bash
+        run: |
+          echo "Checking formatting with Ruff..."
+
+          ruff format . --check
+
+  lint-flake8:
+    name: Lint with Flake8
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install Flake8
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Run Flake8 Lint
+        shell: bash
+        run: |
+          echo "Running Flake8 static analysis..."
+
+          flake8 --ignore=E501 .
+
+  lint-bandit:
+    name: Security Scan with Bandit
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install Bandit
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit
+
+      - name: Run Bandit Security Analysis
+        shell: bash
+        run: |
+          echo "Running Bandit security analysis..."
+
+          bandit -r . -q
+
+  lint-mypy:
+    name: Type Check with MyPy
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install MyPy
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run MyPy Type Checking
+        shell: bash
+        run: |
+          echo "Running MyPy type checking..."
+
+          mypy . \
+            --ignore-missing-imports \
+            --check-untyped-defs \
+            --disallow-untyped-defs \
+            --disallow-incomplete-defs \
+            --disallow-untyped-decorators \
+            --disallow-untyped-calls \
+            --disallow-subclassing-any \
+            --warn-unused-ignores \
+            --warn-unused-configs \
+            --warn-redundant-casts \
+            --warn-return-any \
+            --warn-unreachable
+
+  lint-pyright:
+    name: Lint with Pyright
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Pyright
+        shell: bash
+        run: |
+          pip install pyright
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run Pyright Type Checking
+        shell: bash
+        run: |
+          echo "Running Pyright type checking..."
+
+          pyright --verbose
+
+  pip-audit:
+    name: Dependency Audit with pip-audit
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install pip-audit
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run pip-audit Dependency Audit
+        shell: bash
+        run: |
+          echo "Running pip-audit dependency audit..."
+
+          pip-audit -r requirements.txt
+
+  build:
+    name: Final Build Validation
+    needs:
+      - lint-ruff
+      - lint-flake8
+      - lint-bandit
+      - lint-mypy
+      - lint-pyright
+      - pip-audit
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Final CI Status
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "All CI checks passed successfully."
+          echo "Ruxy's CI pipeline is healthy."
+          echo "========================================"
