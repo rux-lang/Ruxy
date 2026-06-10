@@ -1,11 +1,12 @@
 import discord
+from discord import app_commands
 import blacklist
 from utility import is_jailed
 
 
-def setup(tree, client):
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
     @tree.command(name="whoami", description="Information about you")
-    async def whoami(interaction: discord.Interaction):
+    async def whoami(interaction: discord.Interaction) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted")
             return
@@ -30,9 +31,7 @@ def setup(tree, client):
         embed = discord.Embed(title="Who Am I?", color=color)
 
         embed.add_field(name="Username", value=user.name, inline=False)
-        embed.add_field(
-            name="Display Name", value=user.display_name, inline=False
-        )
+        embed.add_field(name="Display Name", value=user.display_name, inline=False)
         embed.add_field(
             name="Account Creation",
             value=user.created_at.strftime("%d %b %Y"),
@@ -47,9 +46,7 @@ def setup(tree, client):
 
         embed.add_field(
             name="Server Join",
-            value=(
-                joined_at.strftime("%d %b %Y") if joined_at else "Unknown"
-            ),
+            value=(joined_at.strftime("%d %b %Y") if joined_at else "Unknown"),
             inline=False,
         )
 
@@ -69,7 +66,7 @@ def setup(tree, client):
         await interaction.response.send_message(embed=embed)
 
     @tree.command(name="whois", description="Shows information about a user")
-    async def whois(interaction: discord.Interaction, user: discord.Member):
+    async def whois(interaction: discord.Interaction, user: discord.Member) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted")
             return
@@ -82,9 +79,7 @@ def setup(tree, client):
         )
 
         embed.add_field(name="Username", value=user.name, inline=False)
-        embed.add_field(
-            name="Display Name", value=user.display_name, inline=False
-        )
+        embed.add_field(name="Display Name", value=user.display_name, inline=False)
         embed.add_field(
             name="Account Creation",
             value=user.created_at.strftime("%d %b %Y"),
@@ -96,9 +91,7 @@ def setup(tree, client):
         embed.add_field(
             name="Server Join",
             value=(
-                user.joined_at.strftime("%d %b %Y")
-                if user.joined_at
-                else "Unknown"
+                user.joined_at.strftime("%d %b %Y") if user.joined_at else "Unknown"
             ),
             inline=False,
         )

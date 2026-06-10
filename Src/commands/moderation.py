@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 import blacklist
 from config import MOD_ROLE_ID, ADMIN_ROLE_ID, LOG_CHANNEL_ID
 from datetime import timedelta
@@ -7,12 +8,14 @@ from utility import is_allowed
 
 # only mods and up can use it
 # blacklist = can't use the bot
-def setup(tree, client):
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
     @tree.command(
         name="blacklist",
         description="blacklists someone",
     )
-    async def blacklist_command(interaction: discord.Interaction, user: discord.Member):
+    async def blacklist_command(
+        interaction: discord.Interaction, user: discord.Member
+    ) -> None:
         if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
             await interaction.response.send_message("No permission.", ephemeral=True)
             return
@@ -34,7 +37,7 @@ def setup(tree, client):
     )
     async def unblacklist_command(
         interaction: discord.Interaction, user: discord.Member
-    ):
+    ) -> None:
         if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
             await interaction.response.send_message("No permission.", ephemeral=True)
             return
@@ -54,7 +57,7 @@ def setup(tree, client):
         interaction: discord.Interaction,
         user: discord.Member,
         minutes: int | None = None,
-    ):
+    ) -> None:
         author = interaction.user
 
         if not isinstance(author, discord.Member):
@@ -96,9 +99,7 @@ def setup(tree, client):
             )
 
     @tree.command(name="unmute", description="Unmute a user")
-    async def unmute(
-        interaction: discord.Interaction, user: discord.Member
-    ):
+    async def unmute(interaction: discord.Interaction, user: discord.Member) -> None:
         author = interaction.user
 
         if not isinstance(author, discord.Member):
@@ -130,11 +131,9 @@ def setup(tree, client):
         name="say",
         description="say something",
     )
-    async def say(interaction: discord.Interaction, message: str):
+    async def say(interaction: discord.Interaction, message: str) -> None:
         if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
-            await interaction.response.send_message(
-                "No permission.", ephemeral=True
-            )
+            await interaction.response.send_message("No permission.", ephemeral=True)
             return
 
         if (
@@ -152,9 +151,7 @@ def setup(tree, client):
         await interaction.channel.send(message)
 
         log_channel = interaction.guild.get_channel(LOG_CHANNEL_ID)
-        if log_channel is not None and isinstance(
-            log_channel, discord.TextChannel
-        ):
+        if log_channel is not None and isinstance(log_channel, discord.TextChannel):
             await log_channel.send(
                 f"<@{interaction.user.id}> ran `/say` with text "
                 f"`{message}` in <#{interaction.channel_id}>"
