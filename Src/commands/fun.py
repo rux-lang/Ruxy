@@ -1,23 +1,22 @@
 # SPDX-FileCopyrightText: 2025-present Ahum Maitra theahummaitra@gmail.com
 # SPDX-License-Identifier: 	MIT
-
-import random
+import discord
+from discord import Interaction, app_commands, Member, Client
 from datetime import timedelta
-
 import pyjokes
-import requests
-from discord import Interaction, Member, app_commands
-
 import blacklist
 from utility import is_jailed
 
+import requests
+import secrets
 
-def setup(tree, client):
+
+def setup(tree: app_commands.CommandTree, client: Client) -> None:
     @tree.command(
         name="self-timeout",
-        description="Timeout yourself for a specified duration (in minutes)",
+        description="Timeout yourself for a specified duration (minutes)",
     )
-    async def self_timeout(interaction: Interaction, duration: int):
+    async def self_timeout(interaction: Interaction, duration: int) -> None:
         """Allows users to timeout themselves"""
 
         if duration <= 0:
@@ -33,6 +32,12 @@ def setup(tree, client):
             )
             return
 
+        if not isinstance(interaction.user, Member):
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
+
         try:
             await interaction.user.timeout(
                 timedelta(minutes=duration),
@@ -41,14 +46,15 @@ def setup(tree, client):
             await interaction.response.send_message(
                 f"Timed out for {duration} minutes."
             )
-        except Exception as e:
+        except Exception:
             await interaction.response.send_message(
-                "Failed to apply timeout. Please try again!  **If not working for a long time, contact support team!**",
+                "Failed to apply timeout. Please try again! "
+                "**If not working for a long time, contact support team!**",
                 ephemeral=True,
             )
 
     @tree.command(name="joke", description="Get a random joke")
-    async def send_joke(interaction: Interaction):
+    async def send_joke(interaction: Interaction) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
             return
@@ -63,10 +69,11 @@ def setup(tree, client):
             )
         except Exception as e:
             await interaction.response.send_message(
-                f"Failed to fetch a joke. Try again later! **If not working for a long time, contact support team!** \n {e}",
+                "Failed to fetch a joke. Try again later! "
+                "**If not working for a long time, contact support team!** "
+                f"\n {e}",
                 ephemeral=True,
             )
-
     @tree.command(name="roast", description="Roast somebody")
     async def do_roast(interaction: Interaction, member: Member) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
@@ -75,7 +82,7 @@ def setup(tree, client):
         elif is_jailed(interaction):
             await interaction.response.send_message("You are in jail!")
             return
-
+        
         try:
             insult = requests.get(
                 "https://evilinsult.com/generate_insult.php?lang=en&type=text",
@@ -84,7 +91,8 @@ def setup(tree, client):
             await interaction.response.send_message(insult.text)
         except Exception as error:
             await interaction.response.send_message(
-                f"**Unexpected error, contact support after trying for a while :- ** \n {error}"
+                "**Unexpected error, contact support after trying for a while :- ** "
+                f"\n {error}"
             )
 
     @tree.command(name="rps", description="Play RPS")
@@ -93,8 +101,7 @@ def setup(tree, client):
             app_commands.Choice(name="Rock", value="rock"),
             app_commands.Choice(name="Paper", value="paper"),
             app_commands.Choice(name="Scissors", value="scissors"),
-        ]
-    )
+        ])
     async def play_rps(interaction: Interaction, choice: str) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
@@ -104,11 +111,13 @@ def setup(tree, client):
             return
 
         try:
-            computer_choice = random.choice(["rock", "paper", "scissors"])
+            computer_choice = secrets.choice(["rock", "paper", "scissors"])
 
             if choice == computer_choice:
                 await interaction.response.send_message(
-                    f"You choose **{choice}**! \n Computer choose: **{computer_choice}**! \n _**It's a draw!**_"
+                    f"You choose **{choice}**! \n "
+                    f"Computer choose: **{computer_choice}**! \n "
+                    "_**It's a draw!**_"
                 )
                 return
             elif (
@@ -117,11 +126,15 @@ def setup(tree, client):
                 or (choice == "rock" and computer_choice == "scissors")
             ):
                 await interaction.response.send_message(
-                    f"You choose **{choice}** \n Computer choose **{computer_choice}**! \n You won!"
+                    f"You choose **{choice}** \n "
+                    f"Computer choose **{computer_choice}**! \n "
+                    "You won!"
                 )
             else:
                 await interaction.response.send_message(
-                    f"You choose **{choice}** \n Computer choose **{computer_choice}**! \n Computer won!"
+                    f"You choose **{choice}** \n "
+                    f"Computer choose **{computer_choice}**! \n "
+                    "Computer won!"
                 )
 
         except Exception as e:

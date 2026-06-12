@@ -1,51 +1,49 @@
 import discord
+from discord import app_commands
 import blacklist
 from config import MOD_ROLE_ID, ADMIN_ROLE_ID, LOG_CHANNEL_ID
 from datetime import timedelta
 from utility import is_allowed
 
+
 # only mods and up can use it
 # blacklist = can't use the bot
-def setup(tree, client):
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
     @tree.command(
         name="blacklist",
         description="blacklists someone",
     )
-    async def blacklist_command(interaction: discord.Interaction, user: discord.Member):
+    async def blacklist_command(
+        interaction: discord.Interaction, user: discord.Member
+    ) -> None:
         if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
+            await interaction.response.send_message("No permission.", ephemeral=True)
+            return
+        if blacklist.is_blacklisted(user.id):
             await interaction.response.send_message(
-                "No permission.",
-                ephemeral=True
+                user.name + " is already blacklisted"
             )
             return
-        if (blacklist.is_blacklisted(user.id)):
-            await interaction.response.send_message(user.name + " is already blacklisted")
-            return
-        
+
         blacklist.blacklist_user(user.id)
 
-
-        await interaction.response.send_message(user.name + " has been successfully blacklisted")
+        await interaction.response.send_message(
+            user.name + " has been successfully blacklisted"
+        )
 
     @tree.command(
         name="unblacklist",
         description="Unblacklists someone",
     )
     async def unblacklist_command(
-        interaction: discord.Interaction,
-        user: discord.Member
-    ):
+        interaction: discord.Interaction, user: discord.Member
+    ) -> None:
         if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
-            await interaction.response.send_message(
-                "No permission.",
-                ephemeral=True
-            )
+            await interaction.response.send_message("No permission.", ephemeral=True)
             return
 
         if not blacklist.is_blacklisted(user.id):
-            await interaction.response.send_message(
-                f"{user.name} is not blacklisted"
-            )
+            await interaction.response.send_message(f"{user.name} is not blacklisted")
             return
 
         blacklist.unblacklist_user(user.id)
@@ -54,32 +52,33 @@ def setup(tree, client):
             f"{user.name} has been successfully unblacklisted"
         )
 
-    @tree.command(
-        name="mute",
-        description="Mute a user"
-    )
+    @tree.command(name="mute", description="Mute a user")
     async def mute(
         interaction: discord.Interaction,
         user: discord.Member,
-        minutes: int | None = None
-    ):
+        minutes: int | None = None,
+    ) -> None:
         author = interaction.user
+
+        if not isinstance(author, discord.Member):
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
 
         if not (
             author.guild_permissions.administrator
             or is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID])
         ):
             await interaction.response.send_message(
-                "You do not have permission to use this command.",
-                ephemeral=True
+                "You do not have permission to use this command.", ephemeral=True
             )
             return
 
         try:
             if minutes is None:
                 await user.timeout(
-                    timedelta(days=28),
-                    reason=f"Muted for 28 days by {author}"
+                    timedelta(days=28), reason=f"Muted for 28 days by {author}"
                 )
 
                 await interaction.response.send_message(
@@ -87,8 +86,7 @@ def setup(tree, client):
                 )
             else:
                 await user.timeout(
-                    timedelta(minutes=minutes),
-                    reason=f"Muted by {author}"
+                    timedelta(minutes=minutes), reason=f"Muted by {author}"
                 )
 
                 await interaction.response.send_message(
@@ -97,64 +95,66 @@ def setup(tree, client):
 
         except discord.Forbidden:
             await interaction.response.send_message(
-                "I don't have permission to mute that user.",
-                ephemeral=True
+                "I don't have permission to mute that user.", ephemeral=True
             )
 
-    @tree.command(
-        name="unmute",
-        description="Unmute a user"
-    )
-    async def unmute(
-        interaction: discord.Interaction,
-        user: discord.Member
-    ):
+    @tree.command(name="unmute", description="Unmute a user")
+    async def unmute(interaction: discord.Interaction, user: discord.Member) -> None:
         author = interaction.user
+
+        if not isinstance(author, discord.Member):
+            await interaction.response.send_message(
+                "This command can only be used in a server.", ephemeral=True
+            )
+            return
 
         if not (
             author.guild_permissions.administrator
             or is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID])
         ):
             await interaction.response.send_message(
-                "You do not have permission to use this command.",
-                ephemeral=True
+                "You do not have permission to use this command.", ephemeral=True
             )
             return
 
         try:
-            await user.timeout(
-                None,
-                reason=f"Unmuted by {author}"
-            )
+            await user.timeout(None, reason=f"Unmuted by {author}")
 
-            await interaction.response.send_message(
-                f"{user.mention} has been unmuted."
-            )
+            await interaction.response.send_message(f"{user.mention} has been unmuted.")
 
         except discord.Forbidden:
             await interaction.response.send_message(
-                "I don't have permission to unmute that user.",
-                ephemeral=True
+                "I don't have permission to unmute that user.", ephemeral=True
             )
 
     @tree.command(
         name="say",
         description="say something",
     )
-    async def say(interaction: discord.Interaction, message: str):
+    async def say(interaction: discord.Interaction, message: str) -> None:
         if not is_allowed(interaction, [MOD_ROLE_ID, ADMIN_ROLE_ID]):
+            await interaction.response.send_message("No permission.", ephemeral=True)
+            return
+
+        if (
+            interaction.channel is None
+            or not isinstance(
+                interaction.channel, (discord.TextChannel, discord.Thread)
+            )
+            or interaction.guild is None
+        ):
             await interaction.response.send_message(
-                "No permission.",
-                ephemeral=True
+                "Cannot use this command here.", ephemeral=True
             )
             return
-        
-        await interaction.channel.send(
-            message
-        )
 
-        await interaction.guild.get_channel(LOG_CHANNEL_ID).send(
-            f"<@{interaction.user.id}> ran `/say` with text `{message}` in <#{interaction.channel_id}>"
-        )
+        await interaction.channel.send(message)
+
+        log_channel = interaction.guild.get_channel(LOG_CHANNEL_ID)
+        if log_channel is not None and isinstance(log_channel, discord.TextChannel):
+            await log_channel.send(
+                f"<@{interaction.user.id}> ran `/say` with text "
+                f"`{message}` in <#{interaction.channel_id}>"
+            )
 
         await interaction.response.send_message("Success!", ephemeral=True)

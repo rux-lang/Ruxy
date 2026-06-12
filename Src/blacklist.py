@@ -1,5 +1,6 @@
 from config import BLACKLIST_FILE
 
+
 def is_blacklisted(user_id: int) -> bool:
     try:
         with open(BLACKLIST_FILE, "r") as f:
@@ -7,11 +8,13 @@ def is_blacklisted(user_id: int) -> bool:
     except FileNotFoundError:
         return False
 
-def blacklist_user(user_id: int):
+
+def blacklist_user(user_id: int) -> None:
     with open(BLACKLIST_FILE, "a") as f:
         f.write(f"{user_id}\n")
 
-def unblacklist_user(user_id: int):
+
+def unblacklist_user(user_id: int) -> None:
     try:
         with open(BLACKLIST_FILE, "r") as f:
             users = f.read().splitlines()

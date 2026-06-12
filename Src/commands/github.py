@@ -4,7 +4,7 @@ from discord import app_commands
 from blacklist import is_blacklisted, blacklist_user
 from utility import filter_inputs
 
-# if the value starts with "$", then the following should be interpreted as a key for this
+# if the value starts with "$", then it's an alias.
 # if a key does not exist, https://github.com/rux-lang/<key> gets checked.
 # aliases & links in this directory are assumed to be correct and won't be checked.
 # value must end with "/{owner}/repo" if it's not an alias -> no branches
@@ -17,13 +17,15 @@ REPOS = {
     "zed": "https://github.com/rux-lang/Zed",
     "vscode": "https://github.com/rux-lang/VSCode",
     "sublime": "https://github.com/rux-lang/SublimeText",
-
     # alias
     "vsc": "$vscode",
     "sublimetext": "$sublime",
 }
 
-async def repo_autocomplete(interaction: discord.Interaction, current: str):
+
+async def repo_autocomplete(
+    interaction: discord.Interaction, current: str
+) -> list[app_commands.Choice[str]]:
     return [
         app_commands.Choice(name="Rux (Compiler)", value="rux"),
         app_commands.Choice(name="Ruxy Bot", value="bot"),
@@ -32,54 +34,48 @@ async def repo_autocomplete(interaction: discord.Interaction, current: str):
         app_commands.Choice(name="Tutorials", value="tutorials"),
         app_commands.Choice(name="Zed (Extension)", value="zed"),
         app_commands.Choice(name="VS Code (Extension)", value="vscode"),
-        app_commands.Choice(name="Sublime Text (Extension)", value="sublime")
+        app_commands.Choice(name="Sublime Text (Extension)", value="sublime"),
     ]
 
 
-
-def setup(tree, client):
-    @tree.command(
-        name="repo",
-        description="Get a link to a Rux repository"
-    )
+def setup(tree: app_commands.CommandTree, client: discord.Client) -> None:
+    @tree.command(name="repo", description="Get a link to a Rux repository")
     @app_commands.autocomplete(repository=repo_autocomplete)
     async def repo(
-        interaction: discord.Interaction,
-        repository: str,
-        branch: str = "main"
-    ):
+        interaction: discord.Interaction, repository: str, branch: str = "main"
+    ) -> None:
         if is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
             return
         elif filter_inputs([repository, branch]):
-            await interaction.response.send_message("You don't deserve the bot's functionality")
+            await interaction.response.send_message(
+                "You don't deserve the bot's functionality"
+            )
             blacklist_user(interaction.user.id)
             return
-
 
         deferred: bool = False
         repo_name: str = repository
         branch_name: str = ""
         url: str = REPOS.get(repository, "")
-        if url.startswith("$"): # alias
+        if url.startswith("$"):  # alias
             repo_name = f"{url.removeprefix('$')} (alias `{repository}`)"
             url = REPOS.get(url.removeprefix("$"), "")
-        elif url == "": # empty -> check url
+        elif url == "":  # empty -> check url
             r_url = f"https://api.github.com/repos/rux-lang/{repository}"
             await interaction.response.defer()
             deferred = True
 
             # check if a repo exists
-            r = requests.get(r_url, headers={"User-Agent": "repo-check"})
+            r = requests.get(r_url, headers={"User-Agent": "repo-check"}, timeout=10)
             if r.status_code == 200:
                 url = f"https://github.com/rux-lang/{repository}"
             else:
                 await interaction.followup.send(
-                    "This repository does not exist.",
-                    ephemeral=True
+                    "This repository does not exist.", ephemeral=True
                 )
                 return
-        
+
         if branch != "main":
             if not deferred:
                 await interaction.response.defer()
@@ -90,83 +86,68 @@ def setup(tree, client):
             if len(repo_parts) < 2:
                 print(url)
                 print(repo_parts)
-                await interaction.response.send_message(
-                    "Invalid repository URL."
-                )
+                await interaction.response.send_message("Invalid repository URL.")
                 return
 
             repo_url = repo_parts[-2] + "/" + repo_parts[-1]
-            
+
             r_url = f"https://api.github.com/repos/{repo_url}/branches/{branch}"
-            r = requests.get(r_url, headers={"User-Agent": "repo-branch-checker"})
+            r = requests.get(
+                r_url, headers={"User-Agent": "repo-branch-checker"}, timeout=10
+            )
             if r.status_code == 200:
                 url = f"https://github.com/{repo_url}/tree/{branch}"
                 branch_name = branch
             else:
                 await interaction.followup.send(
                     f"Repository `{repository}` has no branch `{branch}`",
-                    ephemeral=True
+                    ephemeral=True,
                 )
 
         view = discord.ui.View()
 
-        view.add_item(
-            discord.ui.Button(
-                label=f"Open {repository}",
-                url=url
-            )
-        )
+        view.add_item(discord.ui.Button(label=f"Open {repository}", url=url))
 
         branch_string: str = f"\nBranch: **{branch_name}**" if branch_name != "" else ""
 
         embed = discord.Embed(
             title="Repository",
             description=f"Repository: **{repo_name}**{branch_string}",
-            color=discord.Color.blurple()
+            color=discord.Color.blurple(),
         )
 
-        embed.add_field(
-            name="URL",
-            value=url,
-            inline=False
-        )
+        embed.add_field(name="URL", value=url, inline=False)
 
         if deferred:
-            await interaction.followup.send(
-                embed=embed,
-                view=view
-            )
+            await interaction.followup.send(embed=embed, view=view)
         else:
-            await interaction.response.send_message(
-                embed=embed,
-                view=view
-            )
-    
-    @tree.command(
-        name="package",
-        description="Get a link to a Rux package"
-    )
+            await interaction.response.send_message(embed=embed, view=view)
+
+    @tree.command(name="package", description="Get a link to a Rux package")
     async def package(
         interaction: discord.Interaction,
         package: str,
-    ):
+    ) -> None:
         if package == "67":
-            await interaction.response.send_message("You don't deserve the bot's functionality")
+            await interaction.response.send_message(
+                "You don't deserve the bot's functionality"
+            )
             return
-
 
         await interaction.response.defer()
 
-        REGISTRY_URL: str = "https://raw.githubusercontent.com/rux-lang/Registry/refs/heads/main/Packages.json"
+        REGISTRY_URL: str = (
+            "https://raw.githubusercontent.com/rux-lang/Registry/"
+            "refs/heads/main/Packages.json"
+        )
 
-        r: requests.Response = requests.get(REGISTRY_URL)
+        r: requests.Response = requests.get(REGISTRY_URL, timeout=10)
         if r.status_code != 200:
             await interaction.followup.send(
-                "Failed to get registry packages!",
-                ephemeral=True
+                "Failed to get registry packages!", ephemeral=True
             )
             return
-        
+
         package = package.lower()
 
         packages: dict[str, str] = r.json()
@@ -174,35 +155,22 @@ def setup(tree, client):
 
         if package not in packages.keys():
             await interaction.followup.send(
-                "Couldn't find this package!",
-                ephemeral=True
+                "Couldn't find this package!", ephemeral=True
             )
             return
-        
+
         url: str = packages[package]
 
         view = discord.ui.View()
 
-        view.add_item(
-            discord.ui.Button(
-                label=f"Open {package}",
-                url=url
-            )
-        )
+        view.add_item(discord.ui.Button(label=f"Open {package}", url=url))
 
         embed: discord.Embed = discord.Embed(
             title="Package",
             description=f"Package: **{package}**",
-            color=discord.Color.blurple()
+            color=discord.Color.blurple(),
         )
 
-        embed.add_field(
-            name="URL",
-            value=url,
-            inline=False
-        )
+        embed.add_field(name="URL", value=url, inline=False)
 
-        await interaction.followup.send(
-            embed=embed,
-            view=view
-        )
+        await interaction.followup.send(embed=embed, view=view)
