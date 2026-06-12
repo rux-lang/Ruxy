@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2025-present Ahum Maitra theahummaitra@gmail.com
 # SPDX-License-Identifier: 	MIT
 
-from discord import Interaction, app_commands, Member
+import random
 from datetime import timedelta
+
 import pyjokes
+import requests
+from discord import Interaction, Member, app_commands
+
 import blacklist
 from utility import is_jailed
-
-import requests
-import random
 
 
 def setup(tree, client):
@@ -65,8 +66,8 @@ def setup(tree, client):
                 f"Failed to fetch a joke. Try again later! **If not working for a long time, contact support team!** \n {e}",
                 ephemeral=True,
             )
+
     @tree.command(name="roast", description="Roast somebody")
-    @app_commands.describe(target="The member you want to roast")
     async def do_roast(interaction: Interaction, member: Member) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")
@@ -74,19 +75,26 @@ def setup(tree, client):
         elif is_jailed(interaction):
             await interaction.response.send_message("You are in jail!")
             return
-        
+
         try:
-            insult = requests.get('https://evilinsult.com/generate_insult.php?lang=en&type=text', timeout=5) #get the insult in plain text
+            insult = requests.get(
+                "https://evilinsult.com/generate_insult.php?lang=en&type=text",
+                timeout=5,
+            )  # get the insult in plain text
             await interaction.response.send_message(insult.text)
         except Exception as error:
-            await interaction.response.send_message(f"**Unexpected error, contact support after trying for a while :- ** \n {error}")
+            await interaction.response.send_message(
+                f"**Unexpected error, contact support after trying for a while :- ** \n {error}"
+            )
 
     @tree.command(name="rps", description="Play RPS")
-    @app_commands.choices(choice=[
+    @app_commands.choices(
+        choice=[
             app_commands.Choice(name="Rock", value="rock"),
             app_commands.Choice(name="Paper", value="paper"),
             app_commands.Choice(name="Scissors", value="scissors"),
-        ])
+        ]
+    )
     async def play_rps(interaction: Interaction, choice: str) -> None:
         if blacklist.is_blacklisted(interaction.user.id):
             await interaction.response.send_message("You are blacklisted!")

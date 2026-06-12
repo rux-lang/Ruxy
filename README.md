@@ -57,6 +57,28 @@ Ruxy's official Discord bot.
 | `/rps`          | Play **rock, paper, scissors** with computer | 
 
 
+### Examples
+
+| Command           | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `/example`        | Show a random Rux example or a specific example by name |
+| `/example-list`   | List all available examples                             |
+| `/example-reload` | Reload all examples from disk                           |
+| `/example-stats`  | Display example statistics                              |
+
+#### Example Directory
+
+Examples are loaded from:
+
+```text
+Examples/
+├── hello.rux
+├── variable_decl.rux
+└── ...
+```
+
+Each `.rux` file becomes an example that can be viewed through the bot.
+
 ## License
 
 Licensed under the MIT License.

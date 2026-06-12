@@ -14,7 +14,8 @@ OWNERS: list[int] = [
 ]
 
 BLOCKED_STRINGS: list[str] = [
-	"67"
+	"67",
+    "61"
 ]
 
 JAIL_ROLE_ID: int = 1510089784205381702

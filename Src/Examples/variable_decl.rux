@@ -1,0 +1,8 @@
+func Main() -> int {
+    let x = 5;      // immutable, deduces the type
+    let x: int = 5; // immutable
+
+    var x = 5;      // mutable, deduces the type
+    var x: int = 5; // mutable
+    return 0;
+}

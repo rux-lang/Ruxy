@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from config import TOKEN
 
-from commands import fun, github, moderation, owner, user, utility
+from commands import fun, github, moderation, owner, user, utility, examples
 
 
 class Client(discord.Client):
@@ -51,5 +51,6 @@ github.setup(tree, client)
 owner.setup(tree, client)
 moderation.setup(tree, client)
 fun.setup(tree, client)
+examples.setup(tree, client)
 
 client.run(TOKEN) # type: ignore
